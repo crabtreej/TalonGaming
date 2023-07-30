@@ -1,4 +1,4 @@
 mode: command
 -
-^enter world of warcraft mode$:
+^enter wow mode$:
     user.enter_warcraft_mode()
