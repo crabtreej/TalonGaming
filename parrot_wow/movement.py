@@ -23,35 +23,39 @@ class Handler:
 
     def toggle_move_left(self: Any):
         """Holds left movement key"""
-        actions.key("a:down")
-        self.held_keys.append("a")
+        if "a" not in self.held_keys:
+            actions.key("a:down")
+            self.held_keys.append("a")
 
     def toggle_move_right(self: Any):
         """Holds right movement key"""
-        actions.key("d:down")
-        self.held_keys.append("d")
+        if "d" not in self.held_keys:
+            actions.key("d:down")
+            self.held_keys.append("d")
 
     def stationary_left_turn(self: Any):
         """Turns left while suspending forward and backward movement"""
-        if self.forward_held:
-            actions.key("w:up")
-            self.suspended_keys.append("w")
-        
-        if self.backward_held:
-            actions.key("s:up")
-            self.suspended_keys.append("s")
-        self.toggle_move_left()
+        if "a" not in self.held_keys:
+            if self.forward_held:
+                actions.key("w:up")
+                self.suspended_keys.append("w")
+            
+            if self.backward_held:
+                actions.key("s:up")
+                self.suspended_keys.append("s")
+            self.toggle_move_left()
 
     def stationary_right_turn(self: Any):
         """Turns right while suspending forward and backward movement"""
-        if self.forward_held:
-            actions.key("w:up")
-            self.suspended_keys.append("w")
-        
-        if self.backward_held:
-            actions.key("s:up")
-            self.suspended_keys.append("s")
-        self.toggle_move_right()
+        if "d" not in self.held_keys:
+            if self.forward_held:
+                actions.key("w:up")
+                self.suspended_keys.append("w")
+            
+            if self.backward_held:
+                actions.key("s:up")
+                self.suspended_keys.append("s")
+            self.toggle_move_right()
 
     def safe_move_forward(self: Any):
         """Turns moving into a continuous command"""
@@ -96,7 +100,7 @@ class Handler:
     ordered_action_list = [
         [(toggle_move_left, make_command_filter("hiss")), (stationary_left_turn, make_command_filter("long_e"))],
         [(toggle_move_forward, make_command_filter("clack")), (safe_move_forward, make_command_filter("hiss"))],
-        [(toggle_move_backward, make_command_filter("clack")), (safe_move_backward, make_command_filter("hiss")), (() => actions.key("space"), make_command_filter("space"))],
+        [(toggle_move_backward, make_command_filter("clack")), (safe_move_backward, make_command_filter("hiss")), (lambda: actions.key("space"), make_command_filter("space"))],
         [(toggle_move_right, make_command_filter("hiss")), (stationary_right_turn, make_command_filter("long_e"))],
     ]
 

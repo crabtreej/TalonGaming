@@ -8,12 +8,20 @@ parrot(hiss):
     print("Got horizontal move command")
     user.movement_command("hiss")
 
+parrot(hiss:repeat):
+    print("Got horizontal move repeat command")
+    user.movement_command("hiss")
+
 parrot(hiss:stop):
     print("Got horizontal move stop command")
     user.movement_command("hiss:stop")
 
 parrot(long_e):
     print("Stationary turn command")
+    user.movement_command("long_e")
+
+parrot(long_e:repeat):
+    print("Stationary turn repeat command")
     user.movement_command("long_e")
 
 parrot(long_e:stop):
