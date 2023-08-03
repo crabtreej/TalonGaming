@@ -12,13 +12,13 @@ class Handler:
 
     ordered_action_list = [
         [
-            (lambda: actions.key("shift-2"), make_command_filter("two")),
+            (lambda: actions.key("shift-3"), make_command_filter("three")),
             (lambda: actions.key("shift-4"), make_command_filter("four")),
             (lambda: actions.key("shift-8"), make_command_filter("eight")),
             (lambda: actions.key("shift-9"), make_command_filter("nine")),
         ],
         [
-            (lambda: actions.key("2"), make_command_filter("two")),
+            (lambda: actions.key("3"), make_command_filter("three")),
             (lambda: actions.key("4"), make_command_filter("four")),
             (lambda: actions.key("8"), make_command_filter("eight")),
             (lambda: actions.key("9"), make_command_filter("nine")),

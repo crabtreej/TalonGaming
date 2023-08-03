@@ -1,4 +1,4 @@
-from talon import actions, Module
+from talon import actions, Module, cron
 from typing import Any
 
 
@@ -107,26 +107,52 @@ class Handler:
     def action_called_for_region(self: Any, region: int, command: Any):
         """Calls Action Corresponding to Region but only allows one continuously held action"""
         # a held action (e.g. hissing continuously) has to end before another one can begin, so we can be sure it's always undoing  last one
-        if not(len(self.held_keys) == 0 and len(self.suspended_keys) == 0):
+        if not(len(self.held_keys) == 0 and len(self.suspended_keys) == 0 ):
             self.restore_keys()
         else:
             # allows for different sounds to not trigger each other despite going to the same handler method
             for (action, command_filter) in self.ordered_action_list[region]:
                 if command_filter(command):
                     action(self)
-                    print(f"{command} in region {region} matches filter")
+                    #print(f"{command} in region {region} matches filter")
                     break
 
 
 handler_instance = Handler()
+delayed_command = None
+delayed_job = None
 
 
 @mod.action_class
 class Actions:
+    def run_delayed_command():
+        """Completes delayed commands and then drops the variable"""
+        global delayed_command
+        global delayed_job
+        print(f"Running delayed command {delayed_command}")
+        
+        actions.user.hud_activate_virtual_key(callback_args={"target": handler_instance, "command": f"{delayed_command}"})
+        delayed_job = None
+        delayed_command = None
+    
     def movement_command(command: str):
         """Sends event to activate virtual key"""
-        print("got command to move")
-        actions.user.hud_activate_virtual_key(callback_args={"target": handler_instance, "command": command})
+        #print("got command to move")
+        global delayed_command
+        global delayed_job
+
+        if delayed_command is None and ":stop" in command:
+            delayed_command = command.split(":")[0]
+            delayed_job = cron.after("5s", actions.user.run_delayed_command)
+        else:
+            # it smooths out commands that need to be repeated, in particular turn commands
+            if delayed_command == command:
+                cron.cancel(delayed_job)
+            else:
+                actions.user.hud_activate_virtual_key(callback_args={"target": handler_instance, "command": command})
+            delayed_job = None
+            delayed_command = None
+
 
     def stop_movement():
         """Releases all movement keys"""

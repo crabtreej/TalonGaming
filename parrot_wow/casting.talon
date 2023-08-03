@@ -1,8 +1,8 @@
 mode: user.warcraft
 -
-parrot(Two):
-    print("two")
-    user.cast("two")
+parrot(Three):
+    print("three")
+    user.cast("three")
     
 parrot(Four):
     print("four")
