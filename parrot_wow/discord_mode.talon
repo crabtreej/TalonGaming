@@ -1,6 +1,6 @@
-mode: user.discord
+mode: user.discordwow
 -
 <phrase>: skip()
-discord:
+parrot(clack):
     print("Leaving discord mode for warcraft mode")
     user.enter_warcraft_mode()

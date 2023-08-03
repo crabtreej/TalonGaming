@@ -1,4 +1,4 @@
-mode: user.warcraft
+mode: user.warcraftmenus
 -
 open talents:
     key(n)
@@ -19,3 +19,10 @@ open social:
 open group finder:
     key(i)
 
+parrot(clack):
+    print("Leaving menus mode for warcraft mode")
+    user.enter_warcraft_mode()
+
+parrot(whistle):
+    print("Leaving menus mode for command mode")
+    user.return_to_command_mode()

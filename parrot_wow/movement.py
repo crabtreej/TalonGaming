@@ -9,6 +9,7 @@ class Handler:
     backward_held = False
     safe_walk = False
     held_keys = []
+    held_command_and_region = None
     suspended_keys = []
 
     def toggle_move_forward(self: Any):
@@ -26,12 +27,14 @@ class Handler:
         if "a" not in self.held_keys:
             actions.key("a:down")
             self.held_keys.append("a")
+            return True
 
     def toggle_move_right(self: Any):
         """Holds right movement key"""
         if "d" not in self.held_keys:
             actions.key("d:down")
             self.held_keys.append("d")
+            return True
 
     def stationary_left_turn(self: Any):
         """Turns left while suspending forward and backward movement"""
@@ -43,7 +46,7 @@ class Handler:
             if self.backward_held:
                 actions.key("s:up")
                 self.suspended_keys.append("s")
-            self.toggle_move_left()
+            return self.toggle_move_left()
 
     def stationary_right_turn(self: Any):
         """Turns right while suspending forward and backward movement"""
@@ -55,19 +58,21 @@ class Handler:
             if self.backward_held:
                 actions.key("s:up")
                 self.suspended_keys.append("s")
-            self.toggle_move_right()
+            return self.toggle_move_right()
 
     def safe_move_forward(self: Any):
         """Turns moving into a continuous command"""
         if self.safe_walk:
             actions.key("w:down")
             self.held_keys.append("w")
+            return True
 
     def safe_move_backward(self: Any):
         """Turns moving into a continuous command"""
         if self.safe_walk:
             actions.key("s:down")
             self.held_keys.append("s")
+            return True
     
     def stop_movement(self: Any):
         """Releases all movement keys"""
@@ -92,6 +97,8 @@ class Handler:
         [actions.key(f"{key}:down") for key in self.suspended_keys]
         self.suspended_keys = []
 
+        self.held_command_and_region = None
+
     def make_command_filter(filter_str: str):
         """Convenience method for making a filter"""
         return lambda a: a == filter_str
@@ -100,58 +107,34 @@ class Handler:
     ordered_action_list = [
         [(toggle_move_left, make_command_filter("hiss")), (stationary_left_turn, make_command_filter("long_e"))],
         [(toggle_move_forward, make_command_filter("clack")), (safe_move_forward, make_command_filter("hiss"))],
-        [(toggle_move_backward, make_command_filter("clack")), (safe_move_backward, make_command_filter("hiss")), (lambda: actions.key("space"), make_command_filter("space"))],
+        [(toggle_move_backward, make_command_filter("clack")), (safe_move_backward, make_command_filter("hiss")), (lambda _: actions.key("space"), make_command_filter("space"))],
         [(toggle_move_right, make_command_filter("hiss")), (stationary_right_turn, make_command_filter("long_e"))],
     ]
 
     def action_called_for_region(self: Any, region: int, command: Any):
         """Calls Action Corresponding to Region but only allows one continuously held action"""
         # a held action (e.g. hissing continuously) has to end before another one can begin, so we can be sure it's always undoing  last one
-        if not(len(self.held_keys) == 0 and len(self.suspended_keys) == 0 ):
-            self.restore_keys()
+        if not(len(self.held_keys) == 0 and len(self.suspended_keys) == 0):
+            if not (command == self.held_command_and_region[0] and region == self.held_command_and_region[1]):
+                print("dropping command")
+                self.restore_keys()
         else:
             # allows for different sounds to not trigger each other despite going to the same handler method
             for (action, command_filter) in self.ordered_action_list[region]:
                 if command_filter(command):
-                    action(self)
+                    if action(self):
+                        self.held_command_and_region = (command, region)
                     #print(f"{command} in region {region} matches filter")
                     break
 
-
 handler_instance = Handler()
-delayed_command = None
-delayed_job = None
-
 
 @mod.action_class
 class Actions:
-    def run_delayed_command():
-        """Completes delayed commands and then drops the variable"""
-        global delayed_command
-        global delayed_job
-        print(f"Running delayed command {delayed_command}")
-        
-        actions.user.hud_activate_virtual_key(callback_args={"target": handler_instance, "command": f"{delayed_command}"})
-        delayed_job = None
-        delayed_command = None
-    
     def movement_command(command: str):
         """Sends event to activate virtual key"""
         #print("got command to move")
-        global delayed_command
-        global delayed_job
-
-        if delayed_command is None and ":stop" in command:
-            delayed_command = command.split(":")[0]
-            delayed_job = cron.after("5s", actions.user.run_delayed_command)
-        else:
-            # it smooths out commands that need to be repeated, in particular turn commands
-            if delayed_command == command:
-                cron.cancel(delayed_job)
-            else:
-                actions.user.hud_activate_virtual_key(callback_args={"target": handler_instance, "command": command})
-            delayed_job = None
-            delayed_command = None
+        actions.user.hud_activate_virtual_key(callback_args={"target": handler_instance, "command": command})
 
 
     def stop_movement():
