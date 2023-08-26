@@ -18,6 +18,8 @@ open social:
     key(o)
 open group finder:
     key(i)
+open main:
+    key(escape)
 
 parrot(clack):
     print("Leaving menus mode for warcraft mode")

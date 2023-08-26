@@ -136,7 +136,6 @@ class Actions:
         #print("got command to move")
         actions.user.hud_activate_virtual_key(callback_args={"target": handler_instance, "command": command})
 
-
     def stop_movement():
         """Releases all movement keys"""
         handler_instance.stop_movement()
