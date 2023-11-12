@@ -113,10 +113,10 @@ class Handler:
 
     def action_called_for_region(self: Any, region: int, command: Any):
         """Calls Action Corresponding to Region but only allows one continuously held action"""
+        print("got called")
         # a held action (e.g. hissing continuously) has to end before another one can begin, so we can be sure it's always undoing  last one
         if not(len(self.held_keys) == 0 and len(self.suspended_keys) == 0):
             if not (command == self.held_command_and_region[0] and region == self.held_command_and_region[1]):
-                print("dropping command")
                 self.restore_keys()
         else:
             # allows for different sounds to not trigger each other despite going to the same handler method
@@ -124,7 +124,7 @@ class Handler:
                 if command_filter(command):
                     if action(self):
                         self.held_command_and_region = (command, region)
-                    #print(f"{command} in region {region} matches filter")
+                    print(f"{command} in region {region} matches filter")
                     break
 
 handler_instance = Handler()
@@ -133,7 +133,7 @@ handler_instance = Handler()
 class Actions:
     def movement_command(command: str):
         """Sends event to activate virtual key"""
-        #print("got command to move")
+        print("got command to move")
         actions.user.hud_activate_virtual_key(callback_args={"target": handler_instance, "command": command})
 
     def stop_movement():

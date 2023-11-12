@@ -1,4 +1,4 @@
-mode: user.warcraft
+mode: user.warcraftnew
 -
 <phrase>: skip()
 key(f20:down):

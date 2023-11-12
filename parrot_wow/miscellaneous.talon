@@ -1,4 +1,4 @@
 mode: user.warcraft
 -
-interact:
+parrot(Oah):
     mouse_click(1)
