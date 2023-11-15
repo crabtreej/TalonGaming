@@ -1,23 +1,25 @@
 from talon import actions, Module, app
 from .common import intersects
 from .state import *
-
+import os
 
 global run_sanity_check
 run_sanity_check = False
 mod = Module()
 
-
 class StateMachine:
     should_handle = True
-    states = [MoveCastMiscState, MenusState, SubmenusState, ChatState]
     
     def __init__(self):
         """Initialize an instance of our base state and run the sanity check if desired"""
         if run_sanity_check:
             self.sanity_check()
         print("Setting up state machine")
+        self.states = {'MenusState': MenusState(self), 'SubmenusState': SubmenusState(self), 'ChatState': ChatState(self)}
         self.active_state = MoveCastMiscState(self)
+        self.base_state = self.active_state
+        self.states['MoveCastMiscState'] = self.active_state
+        actions.user.hud_set_virtual_keyboard(self.active_state.keyboard_name)
         print("State machine configured")
 
     
@@ -34,24 +36,25 @@ class StateMachine:
                     for action_pair in [(action1, action2) for action1 in handler1.actions for action2 in handler2.actions]:
                         if action_pair[0].command == action_pair[1].command:
                             if intersects(action_pair[0].bounds, action_pair[1].bounds):
-                                raise Exception(f"{action_pair[0].command} and {action_pair[1].command} intersect in both region and command in handlers {type(handler_pair[0])}, {type(handler_pair[1])}!")
+                                raise Exception(f"{action_pair[0].command} and {action_pair[1].command} intersect in both region and command in handlers {type(handler1)}, {type(handler2)}!")
 
 
-    def transition(self, next_state: State):
-        self.active_state.cleanup(future_state)
-        self.active_state = future_state
+    def transition(self, next_state_type):
+        self.active_state.cleanup(next_state_type)
+        self.active_state = self.states[next_state_type]
+        actions.user.hud_set_virtual_keyboard(self.active_state.keyboard_name)
 
     
-    def handle_action(self, command: str, region: int):
-        print("State machine received action")
-        future_state = self.active_state.handle_action(command, region)
-        if future_state: 
+    def handle_action(self, command: str, region: int, handler: Handler):
+        future_state = self.active_state.handle_action(command, region, handler)
+        if future_state:
             self.transition(future_state)
 
     
-    def deactivate(self):
-        self.active_state.cleanup(None)
+    def restart(self):
+        self.active_state = self.base_state
         actions.user.hud_set_virtual_keyboard(None)
+        actions.user.hud_set_virtual_keyboard(self.active_state.keyboard_name)
 
 
 @mod.action_class

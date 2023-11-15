@@ -1,6 +1,5 @@
 from talon import actions
 from typing import Callable
-from .state import *
 
 
 class Handler:
@@ -71,6 +70,8 @@ class MovementHandler(Handler):
             Action('Cluck', 2, lambda: self.toggle_move_backward(), self.regions[2]),
         ]
         self.actions.extend([Action('Suck', x, lambda: self.jump(), self.regions[x]) for x in range(4)])
+        self.actions.extend([Action('Hiss:stop', x, lambda: self.restore_keys(), self.regions[x]) for x in range(4)])
+        self.actions.extend([Action('Sh:stop', x, lambda: self.restore_keys(), self.regions[x]) for x in range(4)])
 
 
     def toggle_move_forward(self):
@@ -88,17 +89,17 @@ class MovementHandler(Handler):
 
     def toggle_move_left(self):
         """Holds left movement key"""
-        if "a" not in self.held_keys:
-            actions.key("a:down")
-            self.held_keys.append("a")
+        if "left" not in self.held_keys:
+            actions.key("left:down")
+            self.held_keys.append("left")
             return True
 
 
     def toggle_move_right(self):
         """Holds right movement key"""
-        if "d" not in self.held_keys:
-            actions.key("d:down")
-            self.held_keys.append("d")
+        if "right" not in self.held_keys:
+            actions.key("right:down")
+            self.held_keys.append("right")
             return True
 
 
@@ -173,21 +174,13 @@ class MovementHandler(Handler):
         
     def handle_action(self, command: str, region: int):
         """Calls Action Corresponding to Region but only allows one continuously held action"""
-        # a held action (e.g. hissing continuously) has to end before another one can begin, so we can be sure it's always undoing  last one
-        print("movement handler called")
-        if not(len(self.held_keys) == 0 and len(self.suspended_keys) == 0):
-            if not (command == self.held_command_and_region[0] and region == self.held_command_and_region[1]):
-                self.restore_keys()
-        else:
-            # allows for different sounds to not trigger each other despite going to the same handler method
-            print(command)
-            print(region)
-            for action in self.actions:
-                if action.command == command and action.region == region:
-                    if action.handle_action():
-                        self.held_command_and_region = (command, region)
-                    print(f"{command} in region {region} matches filter")
-                    break
+        # a held action (e.g. hissing continuously) has to end before another one can begin, so we can be sure it's always undoing last one
+        # allows for different sounds to not trigger each other despite going to the same handler method
+        for action in self.actions:
+            if action.command == command and action.region == region:
+                if action.handle_action():
+                    self.held_command_and_region = (command, region)
+                break
 
 
 class CastingHandler(Handler):
@@ -273,8 +266,8 @@ class MoveCastMiscTransitionHandler(Handler):
             3: Bounds(x=(self.third_width) * 2, y=0, width=self.third_width, height=self.screen_height)
         }
         self.actions = [
-            Action('Cluck', 0, lambda: ChatState, self.regions[0]),
-            Action('Whistle', 1, lambda: MenusState, self.regions[1]),
+            Action('Cluck', 3, lambda: 'ChatState', self.regions[0]),
+            Action('Whistle', 1, lambda: 'MenusState', self.regions[1]),
             Action('Whistle', 2, lambda: actions.user.return_to_command_mode(), self.regions[2]),
         ]
 
@@ -295,19 +288,19 @@ class MenusHandler(Handler):
         def action(b):
             self.pressed[b] = (not self.pressed[b]) if b in self.pressed else True
             actions.key(b)
-
+        lambda_action = lambda b: (lambda: action(b))
 
         self.actions = [
-            Action('Ae', 0, action('b'), self.regions[0]),
-            Action('Ah', 0, action('c'), self.regions[0]),
-            Action('Iy', 0, action('p'), self.regions[0]),
-            Action('Oh', 0, action('n'), self.regions[0]),
-            Action('U', 0, action('l'), self.regions[0]),
-            Action('Ae', 1, action('o'), self.regions[1]),
-            Action('Ah', 1, action('i'), self.regions[1]),
-            Action('Iy', 1, action('escape'), self.regions[1]),
-            Action('Oh', 1, action('m'), self.regions[1]),
-            Action('U', 1, action('shift-p'), self.regions[1]),
+            Action('Ae', 0, lambda_action('b'), self.regions[0]),
+            Action('Ah', 0, lambda_action('c'), self.regions[0]),
+            Action('Iy', 0, lambda_action('p'), self.regions[0]),
+            Action('Oh', 0, lambda_action('n'), self.regions[0]),
+            Action('U', 0, lambda_action('l'), self.regions[0]),
+            Action('Ae', 1, lambda_action('o'), self.regions[1]),
+            Action('Ah', 1, lambda_action('i'), self.regions[1]),
+            Action('Iy', 1, lambda_action('escape'), self.regions[1]),
+            Action('Oh', 1, lambda_action('m'), self.regions[1]),
+            Action('U', 1, lambda_action('shift-p'), self.regions[1]),
         ]
 
     
@@ -324,7 +317,7 @@ class MenusTransitionHandler(Handler):
         self.regions = {
             0: Bounds(x=0, y=0, width=self.screen_width, height=self.screen_height)
         }
-        self.actions = [Action('Whistle', 0, lambda: MoveCastMiscState, self.regions[0])]
+        self.actions = [Action('Whistle', 0, lambda: 'MoveCastMiscState', self.regions[0])]
 
     
     def cleanup(self):
@@ -369,7 +362,8 @@ class ChatHandler(Handler):
         def open_chat(channel):
             if not self.dictating:
                 actions.key('enter')
-                actions.insert(f"/{channel} ")
+                actions.key('/')
+                actions.insert(f"p{channel} ")
                 self.dictating = True
                 actions.mode.enable("command")
         
@@ -382,27 +376,26 @@ class ChatHandler(Handler):
 
 
         self.actions = [
-            Action('Ae', 0, open_chat('p'), self.regions[0]),
-            Action('Ah', 0, open_chat('s'), self.regions[0]),
-            Action('Iy', 0, open_chat('g'), self.regions[0]),
-            Action('Oh', 0, open_chat('2'), self.regions[0]),
-            Action('U', 0, open_chat('r'), self.regions[0]),
-            Action('Ae', 1, open_chat('1'), self.regions[1]),
-            Action('Ah', 1, open_chat('w'), self.regions[1]),
-            Action('Iy', 1, open_chat('e'), self.regions[1]),
-            Action('Oh', 1, open_chat('y'), self.regions[1]),
-            Action('U', 1, open_chat('raid'), self.regions[1]),
+            Action('Ae', 0, lambda: open_chat('p'), self.regions[0]),
+            Action('Ah', 0, lambda: open_chat('s'), self.regions[0]),
+            Action('Iy', 0, lambda: open_chat('g'), self.regions[0]),
+            Action('Oh', 0, lambda: open_chat('2'), self.regions[0]),
+            Action('U', 0, lambda: open_chat('r'), self.regions[0]),
+            Action('Ae', 1, lambda: open_chat('1'), self.regions[1]),
+            Action('Ah', 1, lambda: open_chat('w'), self.regions[1]),
+            Action('Iy', 1, lambda: open_chat('e'), self.regions[1]),
+            Action('Oh', 1, lambda: open_chat('y'), self.regions[1]),
+            Action('U', 1, lambda: open_chat('raid'), self.regions[1]),
             Action('Cluck', 0, send, self.regions[0]),
             Action('Cluck', 1, send, self.regions[1]),
-            Action('Suck', 0, self.back_out, self.regions[0]),
-            Action('Suck', 1, self.back_out, self.regions[1]),
+            Action('Suck', 0, lambda: self.back_out(), self.regions[0]),
+            Action('Suck', 1, lambda: self.back_out(), self.regions[1]),
         ]
 
 
-    def back_out():
+    def back_out(self):
         if self.dictating:
-            actions.edit.delete_line()
-            actions.key('enter')
+            actions.key('escape')
             actions.mode.disable("command")
             self.dictating = False
 
@@ -416,10 +409,10 @@ class ChatTransitionHandler(Handler):
     def __init__(self):
         super().__init__()
         self.regions = {
-            Bounds(x=0, y=0, width=self.screen_width, height=self.screen_height)
+            0: Bounds(x=0, y=0, width=self.screen_width, height=self.screen_height)
         }
         self.actions = [
-            Action('Whistle', 0, lambda: MoveCastMiscState, self.regions[0])
+            Action('Whistle', 0, lambda: 'MoveCastMiscState', self.regions[0])
         ]
 
     
