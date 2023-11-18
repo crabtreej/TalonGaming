@@ -20,6 +20,7 @@ class StateMachine:
         self.base_state = self.active_state
         self.states['MoveCastMiscState'] = self.active_state
         actions.user.hud_set_virtual_keyboard(self.active_state.keyboard_name)
+        actions.user.hud_publish_content(self.active_state.state_title, "Current state", self.active_state.state_title)
         print("State machine configured")
 
     
@@ -43,6 +44,7 @@ class StateMachine:
         self.active_state.cleanup(next_state_type)
         self.active_state = self.states[next_state_type]
         actions.user.hud_set_virtual_keyboard(self.active_state.keyboard_name)
+        actions.user.hud_publish_content(self.active_state.state_title, "Current state", self.active_state.state_title)
 
     
     def handle_action(self, command: str, region: int, handler: Handler):
@@ -55,6 +57,7 @@ class StateMachine:
         self.active_state = self.base_state
         actions.user.hud_set_virtual_keyboard(None)
         actions.user.hud_set_virtual_keyboard(self.active_state.keyboard_name)
+        actions.user.hud_publish_content(self.active_state.state_title, "Current state", self.active_state.state_title)
 
 
 @mod.action_class

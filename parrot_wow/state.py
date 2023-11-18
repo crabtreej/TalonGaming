@@ -35,6 +35,7 @@ class MoveCastMiscState(State):
         super().__init__(machine)
         self.handlers = [MovementHandler(), CastingHandler(), MiscellaneousHandler(), MoveCastMiscTransitionHandler()]
         self.keyboard_name = 'MoveCastMiscStateKeyboard'
+        self.state_title = 'Movement State'
         self.register_keyboard(self.keyboard_name)
 
 
@@ -48,6 +49,7 @@ class MenusState(State):
         super().__init__(machine)
         self.handlers = [MenusHandler(), MovementHandler(), MenusTransitionHandler()]
         self.keyboard_name = 'MenusStappteKeyboard'
+        self.state_title = 'Menus State'
         self.register_keyboard(self.keyboard_name)
 
 
@@ -61,6 +63,7 @@ class SubmenusState(State):
         super().__init__(machine)
         self.handlers = [SubmenusHandler(), MovementHandler(), SubmenusTransitionHandler()]
         self.keyboard_name = 'SubmenusStateKeyboard'
+        self.state_title = 'Submenus State'
         self.register_keyboard(self.keyboard_name)
 
 
@@ -73,7 +76,9 @@ class ChatState(State):
     def __init__(self, machine):
         super().__init__(machine)
         self.handlers = [ChatHandler(), ChatTransitionHandler()]
-        self.register_keyboard('ChatStateKeyboard')
+        self.keyboard_name = 'ChatStateKeyboard'
+        self.state_title = 'Chat State'
+        self.register_keyboard(self.keyboard_name)
 
 
     def handle_action(self, command: str, region: int, handler: Handler):
