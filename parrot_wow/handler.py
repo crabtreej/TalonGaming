@@ -90,6 +90,7 @@ class MovementHandler(Handler):
     def toggle_move_left(self):
         """Holds left movement key"""
         if "left" not in self.held_keys:
+            print("turning left")
             actions.key("left:down")
             self.held_keys.append("left")
             return True
@@ -98,6 +99,7 @@ class MovementHandler(Handler):
     def toggle_move_right(self):
         """Holds right movement key"""
         if "right" not in self.held_keys:
+            print("turning right")
             actions.key("right:down")
             self.held_keys.append("right")
             return True
@@ -178,6 +180,7 @@ class MovementHandler(Handler):
         # allows for different sounds to not trigger each other despite going to the same handler method
         for action in self.actions:
             if action.command == command and action.region == region:
+                print(f"running command {command}")
                 if action.handle_action():
                     self.held_command_and_region = (command, region)
                 break
@@ -363,7 +366,7 @@ class ChatHandler(Handler):
             if not self.dictating:
                 actions.key('enter')
                 actions.key('/')
-                actions.insert(f"p{channel} ")
+                actions.insert(f"{channel} ")
                 self.dictating = True
                 actions.mode.enable("command")
         
@@ -384,7 +387,7 @@ class ChatHandler(Handler):
             Action('Ae', 1, lambda: open_chat('1'), self.regions[1]),
             Action('Ah', 1, lambda: open_chat('w'), self.regions[1]),
             Action('Iy', 1, lambda: open_chat('e'), self.regions[1]),
-            Action('Oh', 1, lambda: open_chat('y'), self.regions[1]),
+            Action('Oh', 1, lambda: open_chat('4'), self.regions[1]),
             Action('U', 1, lambda: open_chat('raid'), self.regions[1]),
             Action('Cluck', 0, send, self.regions[0]),
             Action('Cluck', 1, send, self.regions[1]),

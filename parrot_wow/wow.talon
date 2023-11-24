@@ -58,5 +58,6 @@ parrot(Sh:stop):
 
 parrot(Oah):
     print("Oah")
+    tracking.control_toggle(false)
     mouse_click(1)
-    
+    tracking.control_toggle(true)

@@ -1,5 +1,8 @@
 mode: user.warcraft
 -
+settings():
+    user.mouse_enable_pop_click = 0
+
 <phrase>: skip()
 key(f20:down):
     print("Leaving warcraft mode for discord mode")
@@ -13,6 +16,8 @@ key(f21:up):
     tracking.control_head_toggle(true)
     user.mouse_drag_end()
 
-parrot(whistle):
-    print("Leaving warcraft mode for menus mode")
-    user.enter_menus_mode()
+key(f22:down):
+    tracking.control_head_toggle(false)
+
+key(f22:up):
+    tracking.control_head_toggle(true)
