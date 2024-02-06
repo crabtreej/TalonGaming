@@ -32,6 +32,10 @@ parrot(Iy):
     print("Iy")
     user.handle_parrot_action("Iy")
 
+parrot(IyPower):
+    print("IyPower")
+    user.handle_parrot_action("Iy")
+
 parrot(Oh):
     print("Oh")
     user.handle_parrot_action("Oh")

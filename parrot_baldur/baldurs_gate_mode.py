@@ -78,4 +78,4 @@ def register_virtual_keyboard():
     actions.user.hud_register_virtual_keyboard('baldur_keyboard', keys)
     
 
-app.register('ready', register_virtual_keyboard) 
+#app.register('ready', register_virtual_keyboard) 
